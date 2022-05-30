@@ -49,6 +49,7 @@ const findByEmailWithDifferentId = (email, id) => {
 };
 
 const create = ({ firstname, lastname, city, language, email, password }) => {
+  const token = calculateToken(email);
   return hashPassword(password).then((hashedPassword) => {
     return db
       .query('INSERT INTO users SET ?', {
@@ -58,6 +59,7 @@ const create = ({ firstname, lastname, city, language, email, password }) => {
         language,
         email,
         hashedPassword,
+        token,
       })
       .then(([result]) => {
         const id = result.insertId;
@@ -66,8 +68,12 @@ const create = ({ firstname, lastname, city, language, email, password }) => {
   });
 };
 
-const update = (id, newAttributes) => {
-  return db.query('UPDATE users SET ? WHERE id = ?', [newAttributes, id]);
+const update = (id, newAttributes, token) => {
+  return db.query('UPDATE users SET ? WHERE token = ? AND id = ?', [
+    newAttributes,
+    token,
+    id,
+  ]);
 };
 
 const destroy = (id) => {
