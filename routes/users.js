@@ -48,10 +48,10 @@ usersRouter.post('/', (req, res) => {
       else res.status(500).send('Error saving the user');
     });
 });
-//TODO : calculer le jeton et l'envoyer à la fonction de mise à jour
 usersRouter.put('/:id', (req, res) => {
   let existingUser = null;
   let validationErrors = null;
+  let token = null;
   Promise.all([
     User.findOne(req.params.id),
     User.findByEmailWithDifferentId(req.body.email, req.params.id),
@@ -62,8 +62,12 @@ usersRouter.put('/:id', (req, res) => {
       if (otherUserWithEmail) return Promise.reject('DUPLICATE_EMAIL');
       validationErrors = User.validate(req.body, false);
       if (validationErrors) return Promise.reject('INVALID_DATA');
-      const token = calculateToken(req.params.email);
-      return User.update(req.params.id, req.body, token);
+      if (req.body.email) {
+        token = calculateToken(req.body.email);
+      } else {
+        token = calculateToken(existingUser.email);
+      }
+      return User.update(req.params.id, token, req.body);
     })
     .then(() => {
       res.status(200).json({ ...existingUser, ...req.body });

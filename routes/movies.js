@@ -1,21 +1,24 @@
 const moviesRouter = require('express').Router();
 const Movie = require('../models/movie');
+const { findByToken } = require('../models/user');
 
-moviesRouter.get('/', (req, res) => {
-  const { max_duration, color } = req.query;
-  Movie.findMany({ filters: { max_duration, color } })
-    .then((movies) => {
-      res.json(movies);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send('Error retrieving movies from database');
-    });
-});
+// moviesRouter.get('/', (req, res) => {
+//   const { max_duration, color } = req.query;
+//   Movie.findMany({ filters: { max_duration, color } })
+//     .then((movies) => {
+//       res.json(movies);
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//       res.status(500).send('Error retrieving movies from database');
+//     });
+// });
 
 moviesRouter.get('/', async (req, res) => {
   const { max_duration, color } = req.query;
-  Movie.findMany({ filters: { max_duration, color } })
+  const token = req?.cookies.user_token;
+  const userId = await findByToken(token);
+  Movie.findMany({ filters: { max_duration, color } }, userId)
     .then((movies) => {
       res.json(movies);
     })
@@ -38,12 +41,17 @@ moviesRouter.get('/:id', (req, res) => {
     });
 });
 
-moviesRouter.post('/', (req, res) => {
+moviesRouter.post('/', async (req, res) => {
   const error = Movie.validate(req.body);
+  const token = req.cookies.user_token;
+  const userId = await findByToken(token);
+
   if (error) {
     res.status(422).json({ validationErrors: error.details });
+  } else if (!userId) {
+    res.status(401).send('User Id not found');
   } else {
-    Movie.create(req.body)
+    Movie.create(req.body, userId)
       .then((createdMovie) => {
         res.status(201).json(createdMovie);
       })

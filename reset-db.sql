@@ -6,7 +6,9 @@ CREATE TABLE `movies` (
   `year` varchar(255) NOT NULL,
   `color` tinyint(1) NOT NULL,
   `duration` int NOT NULL,
-  PRIMARY KEY (`id`)
+  `user_id` int,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY(`user_id`) REFERENCES users(`id`)
 );
 INSERT INTO
   `movies` (title, director, year, color, duration)
@@ -56,6 +58,8 @@ CREATE TABLE `users` (
     `city` varchar(255) DEFAULT NULL,
     `language` varchar(255) DEFAULT NULL,
     `hashedPassword` varchar(255) NOT NULL,
+    `token` varchar(255) ,
+
     PRIMARY KEY (`id`)
   );
 INSERT INTO

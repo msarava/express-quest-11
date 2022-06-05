@@ -11,9 +11,9 @@ authRouter.post('/login', (req, res) => {
         (passwordIsCorrect) => {
           if (passwordIsCorrect) {
             const token = calculateToken(email);
-            User.update(user.id, { token: token });
+            User.update(user.id, token);
             res.cookie('user_token', token);
-            res.send();
+            res.send('Authentication ok');
           } else res.status(401).send('Invalid credentials');
         }
       );
